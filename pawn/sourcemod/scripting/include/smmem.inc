@@ -90,3 +90,4 @@ public void __ext_smmem_SetNTVOptional()
 	MarkNativeAsOptional("MemCmp");
 	MarkNativeAsOptional("MemSet");
 }
+#endif
