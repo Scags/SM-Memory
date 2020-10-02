@@ -36,6 +36,7 @@ SMMem g_Mem;		/**< Global singleton for extension's main interface */
 
 bool SMMem::SDK_OnLoad(char *error, size_t maxlen, bool late)
 {
+	sharesys->RegisterLibrary(myself, "SM-Mem");
 	sharesys->AddNatives(myself, g_Natives);
 	return true;
 }
