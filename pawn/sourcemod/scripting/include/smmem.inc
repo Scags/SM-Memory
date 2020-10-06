@@ -5,7 +5,9 @@
 
 #if !defined NO_PTR_MACROS
   #define ptr Address
+  #define cellbytes 4
   #define Address(%0) view_as< Address >(%0)
+  #define memoffs(%0) ((%0) * cellbytes)
 #endif
 
 native any Calloc(int num, int size);
@@ -13,7 +15,7 @@ native any Malloc(int size);
 native any Realloc(any p, int size);
 native void Free(any p);
 native void MemMove(any dest, any src, int size);
-native void MemCopy(any dest, any src, int size);
+native any MemCopy(any dest, any src, int size);
 native int MemCmp(any p1, any p2, int size);
 native void MemSet(any p, int val, int size);
 
@@ -38,9 +40,9 @@ stock void memmove(any dest, any src, int size)
 {
 	MemMove(dest, src, size);
 }
-stock void memcpy(any dest, any src, int size)
+stock any memcpy(any dest, any src, int size)
 {
-	MemCopy(dest, src, size);
+	return MemCopy(dest, src, size);
 }
 stock int memcmp(any p1, any p2, int size)
 {

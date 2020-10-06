@@ -29,11 +29,16 @@ def CopyFiles(src, dest, files):
 
 # Include files 
 CopyFiles('pawn', 'addons/sourcemod/scripting/include',
-  [ 'sourcemod/scripting/include/smmem.inc', ]
+  [ 'sourcemod/scripting/include/smmem.inc',
+  'sourcemod/scripting/include/smmem_vec.inc',
+  'sourcemod/scripting/include/smmem_stocks.inc'
+  ]
 )
 
 CopyFiles('pawn', 'addons/sourcemod/scripting',
-  [ 'sourcemod/scripting/memtest.sp', ]
+  [ 'sourcemod/scripting/memtest.sp',
+  'sourcemod/scripting/memtest_vec.sp'
+  ]
 )
 
 # GameData files
