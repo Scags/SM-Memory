@@ -301,4 +301,9 @@ methodmap CUtlVector
 		for (int i = 0; i < len; ++i)
 			array[i] = this.Element(i);
 	}
+
+	public void Set(int index, any src = 0, int size = 4, int offset = 0, NumberType numt = NumberType_Int32)
+	{
+		WriteVal(this.m_pMemory + index * size + offset, src, numt);
+	}
 }
