@@ -19,6 +19,39 @@ native any MemCopy(any dest, any src, int size);
 native int MemCmp(any p1, any p2, int size);
 native void MemSet(any p, int val, int size);
 
+/**
+ *	Emit a sequence of asm.
+ *	Note: You're better off creating a static SDKCall with the address being your own pointer
+ *	to assembly code. 
+ *
+ *	@param bytes 			Array of assembly to emit.
+ *	@param len 				Size of the array.
+ *	@param customcleanup	If true, you are responsible for cleaning up the function call.
+ *							Otherwise, the native will do it for you. If you're passing params,
+ *							you must clean them up yourself (Set this to true).
+ *	@param ... 				Optional parameters to add in case this is a function call.
+ *							Note that you're most likely better off creating your own SDKCall.
+ *							This exists solely for the pedantic and crazy.
+ *
+ *	@return 				Whatever you tell it to return.
+*/
+native any Emit(any[] bytes, int len, bool customcleanup = false, any ...);
+
+/**
+ *	Get Address of a variable.
+ *
+ *	@param cell 			Variable to get the address of.
+ *
+ *	@return 				Address of the variable.
+*/
+native any AddressOf(any &cell);
+stock any AddressOfArray(any[] array)
+{
+	return AddressOf(array[0]);
+}
+// For some reason str[0] gets a mismatch. Probably because it's too small to be a cell
+native any AddressOfString(const char[] str);
+
 #if !defined NO_C_NAMES
 stock any calloc(int num, int size)
 {
@@ -91,5 +124,8 @@ public void __ext_smmem_SetNTVOptional()
 	MarkNativeAsOptional("MemCopy");
 	MarkNativeAsOptional("MemCmp");
 	MarkNativeAsOptional("MemSet");
+	MarkNativeAsOptional("Emit");
+	MarkNativeAsOptional("AddressOf");
+	MarkNativeAsOptional("AddressOfString");
 }
 #endif

@@ -201,33 +201,133 @@ static cell_t Native_MemSet(IPluginContext *pContext, const cell_t *params)
 	return returnval;
 }
 
-//static cell_t Native_AddressOf(IPluginContext *pContext, const cell_t *params)
-//{
-//	cell_t *var;
-//	if (pContext->LocalToPhysAddr(params[1], &var) != SP_ERROR_NONE)
-//	{
-//		return pContext->ThrowNativeError("Variable must be declared and contained within a plugin's scope.");
-//	}
-//	return (cell_t)var;
-//}
+static unsigned char* g_CurrJump = NULL;
 
-//static cell_t Native_AddrToArray(IPluginContext *pContext, const cell_t *params)
-//{
-//	uintptr_t ptr = (uintptr_t)params[1];
-//	if (ptr < VALID_MINIMUM_MEMORY_ADDRESS)
+// This will only work on 32-bit SourceMod
+// No, I will not try for 64-bit compatibility
+static cell_t Native_Emit(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef WIN32
+	static const unsigned char epilogue[] = {
+		0x8B, 0xE5,		// mov esp, ebp
+		0x5D,			// pop ebp
+		0xC3			// retn
+	};
+#else
+	static const unsigned char epilogue[] = {
+		0x8B, 0x5D, 0xFC,	// move ebx, [ebp-4]
+		0xC9,				// leave
+		0xC3				// retn
+	};
+#endif
+
+	cell_t *array;
+	pContext->LocalToPhysAddr(params[1], &array);
+
+	cell_t length = params[2];
+	if (length < 0)
+	{
+		pContext->ThrowNativeError("Invalid length %d specified.", length);
+	}
+
+	if (g_CurrJump != NULL)
+	{
+		delete[] g_CurrJump;
+	}
+
+	g_CurrJump = new unsigned char[length + sizeof(epilogue)/sizeof(*epilogue)];
+	for (int i = 0; i < length; ++i)
+	{
+		g_CurrJump[i] = (unsigned char)array[i];
+	}
+
+	if (!params[3])	// Custom cleanup
+	{
+		if (params[0] - 3 > 0)
+		{
+			delete[] g_CurrJump;
+			return pContext->ThrowNativeError("Custom cleanup (param 3) is required for argumented assembly functions.");
+		}
+		for (unsigned i = length; i < length + sizeof(epilogue)/sizeof(*epilogue); ++i)
+		{
+			g_CurrJump[i] = epilogue[i-length];
+		}
+	}
+
+	SourceHook::SetMemAccess(g_CurrJump, length + sizeof(epilogue)/sizeof(*epilogue), SH_MEM_READ|SH_MEM_WRITE|SH_MEM_EXEC);
+	// This is fucking awful but let's just roll with it
+	switch (params[0] - 3)
+	{
+		case 0:
+		{
+			cell_t (*ptr)(void) = (cell_t (*)(void))g_CurrJump;
+			return ptr();
+			break;
+		}
+		case 1:
+		{
+			cell_t (*ptr)(cell_t) = (cell_t (*)(cell_t))g_CurrJump;
+			return ptr(params[4]);
+			break;
+		}
+		case 2:
+		{
+			cell_t (*ptr)(cell_t, cell_t) = (cell_t (*)(cell_t, cell_t))g_CurrJump;
+			return ptr(params[4], params[5]);
+			break;
+		}
+		case 3:
+		{
+			cell_t (*ptr)(cell_t, cell_t, cell_t) = (cell_t (*)(cell_t, cell_t, cell_t))g_CurrJump;
+			return ptr(params[4], params[5], params[6]);
+			break;
+		}
+		case 4:
+		{
+			cell_t (*ptr)(cell_t, cell_t, cell_t, cell_t) = (cell_t (*)(cell_t, cell_t, cell_t, cell_t))g_CurrJump;
+			return ptr(params[4], params[5], params[6], params[7]);
+			break;
+		}
+		case 5:
+		{
+			cell_t (*ptr)(cell_t, cell_t, cell_t, cell_t, cell_t) = (cell_t (*)(cell_t, cell_t, cell_t, cell_t, cell_t))g_CurrJump;
+			return ptr(params[4], params[5], params[6], params[7], params[8]);
+			break;
+		}
+		case 6:
+		{
+			cell_t (*ptr)(cell_t, cell_t, cell_t, cell_t, cell_t, cell_t) = (cell_t (*)(cell_t, cell_t, cell_t, cell_t, cell_t, cell_t))g_CurrJump;
+			return ptr(params[4], params[5], params[6], params[7], params[8], params[9]);
+			break;
+		}
+		// No
+		default:
+			pContext->ThrowNativeError("Too many assembly parameters! Max 6 (%d given)", params[0] - 3);
+			break;
+	}
+
+	return 0;
+
+//#ifdef WIN32
+//	__asm
 //	{
-//		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", ptr);
+//		jmp g_CurrJump;
 //	}
-//
-//	cell_t *array;
-//	if (pContext->LocalToPhysAddr(params[2], &array) != SP_ERROR_NONE)
-//	{
-//		return pContext->ThrowNativeError("Arrays must be declared and contained within a plugin's scope.");
-//	}
-//
-//	*array = (cell_t)ptr;
-//	return 0;
-//}
+//#else
+//	asm volatile("jmp *%0" : : "r" (g_CurrJump));
+//#endif
+}
+
+static cell_t Native_AddressOf(IPluginContext *pContext, const cell_t *params)
+{
+	cell_t *var;
+	if (pContext->LocalToPhysAddr(params[1], &var) != SP_ERROR_NONE)
+	{
+		return pContext->ThrowNativeError("Variable must be declared and contained within a plugin's scope.");
+	}
+	return (cell_t)var;
+}
+
 
 sp_nativeinfo_t g_Natives[] = {
 	{"Calloc", 			Native_Calloc},
@@ -238,7 +338,8 @@ sp_nativeinfo_t g_Natives[] = {
 	{"MemCopy", 		Native_MemCopy},
 	{"MemCmp", 			Native_MemCmp},
 	{"MemSet", 			Native_MemSet},
-//	{"AddressOf", 		Native_AddressOf},
-//	{"AddrToArray", 	Native_AddrToArray},
+	{"Emit", 			Native_Emit},
+	{"AddressOf", 		Native_AddressOf},
+	{"AddressOfString", Native_AddressOf},
 	{NULL, NULL}
 };
