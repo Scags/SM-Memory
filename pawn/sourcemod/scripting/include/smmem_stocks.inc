@@ -52,7 +52,7 @@ stock any StringToPtr(const char[] str, int size)
 {
 	int p = Malloc(size);
 	for (int i = 0; i < size; ++i)
-		WriteVal(p + i, array[i], NumberType_Int8);
+		WriteVal(p + i, str[i], NumberType_Int8);
 	return p;
 }
 
