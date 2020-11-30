@@ -34,18 +34,18 @@ stock void TransmuteCell(any cell, any array[4])
 	for (int i = 0, byte = 0xFF; i < 4; array[i++] = cell & byte, byte <<= 8) {}
 }
 
-stock any ArrayToPtr(any[] array, int size)
+stock any ArrayToPtr(any[] array, int size, NumberType numt = NumberType_Int32)
 {
 	int p = Malloc(size * 4);
-	for (int i = 0; i < size; ++i)
-		WriteVal(p + i * 4, array[i]);
+	for (int i = 0, mult = 0; i < size; ++i, mult += (1 << view_as< int >(numt)))
+		WriteVal(p + mult, array[i], numt);
 	return p;
 }
 
-stock void PtrToArray(any p, any[] array, int size)
+stock void PtrToArray(any p, any[] array, int size, NumberType numt = NumberType_Int32)
 {
-	for (int i = 0; i < size; ++i)
-		array[i] = Deref(p + i * 4);
+	for (int i = 0, mult = 0; i < size; ++i, mult += (1 << view_as< int >(numt)))
+		array[i] = Deref(p + mult, numt);
 }
 
 stock any StringToPtr(const char[] str, int size)

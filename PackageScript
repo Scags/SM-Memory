@@ -37,7 +37,8 @@ CopyFiles('pawn', 'addons/sourcemod/scripting/include',
 
 CopyFiles('pawn', 'addons/sourcemod/scripting',
   [ 'sourcemod/scripting/memtest.sp',
-  'sourcemod/scripting/memtest_vec.sp'
+  'sourcemod/scripting/memtest_vec.sp',
+  'sourcemod/scripting/memtest_func.sp'
   ]
 )
 

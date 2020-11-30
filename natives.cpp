@@ -328,18 +328,83 @@ static cell_t Native_AddressOf(IPluginContext *pContext, const cell_t *params)
 	return (cell_t)var;
 }
 
+enum NumberType
+{
+	NumberType_Int8,
+	NumberType_Int16,
+	NumberType_Int32
+};
+
+// This is literally the SM native but there's no SetMemAccess so we go faaaast
+static cell_t Native_StoreToAddressFast(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X86
+	void *addr = reinterpret_cast<void*>(params[1]);
+#else
+	void *addr = pseudoAddr.FromPseudoAddress(params[1]);
+#endif
+
+	if (addr == NULL)
+	{
+		return pContext->ThrowNativeError("Address cannot be null");
+	}
+	else if (reinterpret_cast<uintptr_t>(addr) < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", addr);
+	}
+	cell_t data = params[2];
+
+	NumberType size = static_cast<NumberType>(params[3]);
+
+	switch(size)
+	{
+	case NumberType_Int8:
+		*reinterpret_cast<uint8_t*>(addr) = data;
+		break;
+	case NumberType_Int16:
+		*reinterpret_cast<uint16_t*>(addr) = data;
+		break;
+	case NumberType_Int32:
+		*reinterpret_cast<uint32_t*>(addr) = data;
+		break;
+	default:
+		return pContext->ThrowNativeError("Invalid number types %d", size);
+	}
+
+	return 0;
+}
+
+static cell_t Native_SetMemAccess(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X86
+	void *addr = (void *)params[1];
+#else
+	void *addr = pseudoAddr.FromPseudoAddress(params[1]);
+#endif
+
+	if ((uintptr_t)addr < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", addr);
+	}
+
+	size_t length = (size_t)params[2];
+	int flags = params[3];
+	return SourceHook::SetMemAccess(addr, length, flags) ? 1 : 0;
+}
 
 sp_nativeinfo_t g_Natives[] = {
-	{"Calloc", 			Native_Calloc},
-	{"Free", 			Native_Free},
-	{"Malloc", 			Native_Malloc},
-	{"Realloc", 		Native_Realloc},
-	{"MemMove", 		Native_MemMove},
-	{"MemCopy", 		Native_MemCopy},
-	{"MemCmp", 			Native_MemCmp},
-	{"MemSet", 			Native_MemSet},
-	{"Emit", 			Native_Emit},
-	{"AddressOf", 		Native_AddressOf},
-	{"AddressOfString", Native_AddressOf},
+	{"Calloc", 				Native_Calloc},
+	{"Free", 				Native_Free},
+	{"Malloc", 				Native_Malloc},
+	{"Realloc", 			Native_Realloc},
+	{"MemMove", 			Native_MemMove},
+	{"MemCopy", 			Native_MemCopy},
+	{"MemCmp", 				Native_MemCmp},
+	{"MemSet", 				Native_MemSet},
+	{"Emit", 				Native_Emit},
+	{"AddressOf", 			Native_AddressOf},
+	{"AddressOfString", 	Native_AddressOf},
+	{"StoreToAddressFast", 	Native_StoreToAddressFast},
+	{"SetMemAccess", 		Native_SetMemAccess},
 	{NULL, NULL}
 };

@@ -52,6 +52,23 @@ stock any AddressOfArray(any[] array)
 // For some reason str[0] gets a mismatch. Probably because it's too small to be a cell
 native any AddressOfString(const char[] str);
 
+/**
+ *	Store memory to an address
+ *	NOTE: This does not set memory access. You must use SetMemAccess first.
+ *	This is same as StoreToAddress but exists purely for optimization purposes.
+ *
+ *	@param p 				Address to store to.
+ *	@param val 				Value to store.
+ *	@param numt 			Size to store.
+*/
+native void StoreToAddressFast(any p, any val, NumberType numt = NumberType_Int32);
+
+#define SH_MEM_READ 	1
+#define SH_MEM_WRITE 	2
+#define SH_MEM_EXEC 	4
+// See above defines for flags
+native bool SetMemAccess(any p, int size, int flags);
+
 #if !defined NO_C_NAMES
 stock any calloc(int num, int size)
 {
