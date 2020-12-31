@@ -109,7 +109,7 @@ methodmap CUtlVector
 
 	public bool IsValidIndex(int i)
 	{
-		return (0 <= i <= this.m_Size);
+		return (0 <= i < this.m_Size);
 	}
 
 	public static int InvalidIndex()
