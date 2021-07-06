@@ -7,6 +7,7 @@ projectName = 'sm-mem'
 sourceFiles = [
   'extension.cpp',
   'natives.cpp',
+  'dynlib.cpp',
 ]
 
 ###############

@@ -198,7 +198,7 @@ methodmap CUtlVector
 
 	public int AddToTail(any data = 0, int size = 4)
 	{
-		return this.InsertBefore(this.m_Size, size);
+		return this.InsertBefore(this.m_Size, data, size);
 	}
 
 	public int Find(any src, int size = 4)

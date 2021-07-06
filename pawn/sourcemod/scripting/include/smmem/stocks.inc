@@ -5,6 +5,20 @@
 
 #include <smmem>
 
+stock any Deref(any addr, NumberType numt = NumberType_Int32)
+{
+	return LoadFromAddress(view_as< Address >(addr), numt);
+}
+
+stock void WriteVal(any addr, any val, NumberType numt = NumberType_Int32)
+{
+	StoreToAddress(view_as< Address >(addr), view_as< int >(val), numt);
+}
+stock void WriteValF(any addr, any val, NumberType numt = NumberType_Int32)
+{
+	StoreToAddressFast(view_as< Address >(addr), view_as< int >(val), numt);
+}
+
 stock any GetEntityHandle(int ent)
 {
 	if (!IsValidEntity(ent))

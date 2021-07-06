@@ -31,19 +31,37 @@
 
 #include "extension.h"
 #include "natives.h"
+#include "dynlib.h"
 
 SMMem g_Mem;		/**< Global singleton for extension's main interface */
+HandleType_t g_DynLib = BAD_HANDLE;
 
 bool SMMem::SDK_OnLoad(char *error, size_t maxlen, bool late)
 {
 	sharesys->RegisterLibrary(myself, "SM-Mem");
+
+	HandleError err;
+	g_DynLib = handlesys->CreateType("DynLib", this, 0, NULL, NULL, myself->GetIdentity(), &err);
+	if (g_DynLib == BAD_HANDLE)
+	{
+		snprintf(error, maxlen, "Could not create DynLib handle (err: %d)", err);
+		return false;
+	}
+
 	sharesys->AddNatives(myself, g_Natives);
+
 	return true;
 }
 
 void SMMem::SDK_OnUnload()
 {
 	
+}
+
+void SMMem::OnHandleDestroy(HandleType_t type, void *object)
+{
+	if (type == g_DynLib)
+		delete (DynLib *)object;
 }
 
 SMEXT_LINK(&g_Mem);
