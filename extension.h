@@ -34,7 +34,7 @@
 
 #include "smsdk_ext.h"
 
-class SMMem : public SDKExtension
+class SMMem : public SDKExtension, public IHandleTypeDispatch
 {
 public:
 	/**
@@ -51,6 +51,7 @@ public:
 	 * @brief This is called right before the extension is unloaded.
 	 */
 	virtual void SDK_OnUnload();
+	virtual void OnHandleDestroy(HandleType_t type, void *object);
 
 	/**
 	 * @brief This is called once all known extensions have been loaded.

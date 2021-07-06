@@ -45,4 +45,14 @@ public void OnPluginStart()
 
 	free(p);
 	free(l);
+
+	DynLib lib = new DynLib("server");
+	PrintToServer("BaseAddr: %X", lib.BaseAddr);
+	char name[64]; lib.GetName(name, sizeof(name));
+	PrintToServer("Name: %s", name);
+	PrintToServer("Pattern: %X", lib.FindPattern("\x55", 1));
+	PrintToServer("Pattern-BaseAddr: %X", lib.FindPattern("\x55", 1) - lib.BaseAddr);
+	PrintToServer("ResolveSymbol: %X", lib.ResolveSymbol("?DropSoundThink@CTFAmmoPack@@QAEXXZ"));
+	PrintToServer("ResolveSymbol-BaseAddr: %X", lib.ResolveSymbol("?DropSoundThink@CTFAmmoPack@@QAEXXZ") - lib.BaseAddr);
+	delete lib;
 }

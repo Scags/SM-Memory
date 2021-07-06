@@ -40,7 +40,7 @@
 /* Basic information exposed publicly */
 #define SMEXT_CONF_NAME			"SM-Mem"
 #define SMEXT_CONF_DESCRIPTION	"Exposes raw memory for SourceMod plugins"
-#define SMEXT_CONF_VERSION		"1.2.0.5"
+#define SMEXT_CONF_VERSION		"1.3.0.6"
 #define SMEXT_CONF_AUTHOR		"Scag"
 #define SMEXT_CONF_URL			"https://github.com/Scags?tab=repositories"
 #define SMEXT_CONF_LOGTAG		"SM-MEM"
@@ -60,15 +60,15 @@
 
 /** Enable interfaces you want to use here by uncommenting lines */
 //#define SMEXT_ENABLE_FORWARDSYS
-//#define SMEXT_ENABLE_HANDLESYS
+#define SMEXT_ENABLE_HANDLESYS
 //#define SMEXT_ENABLE_PLAYERHELPERS
 //#define SMEXT_ENABLE_DBMANAGER
 //#define SMEXT_ENABLE_GAMECONF
-//#define SMEXT_ENABLE_MEMUTILS
+#define SMEXT_ENABLE_MEMUTILS
 //#define SMEXT_ENABLE_GAMEHELPERS
 //#define SMEXT_ENABLE_TIMERSYS
 //#define SMEXT_ENABLE_THREADER
-//#define SMEXT_ENABLE_LIBSYS
+#define SMEXT_ENABLE_LIBSYS
 //#define SMEXT_ENABLE_MENUS
 //#define SMEXT_ENABLE_ADTFACTORY
 //#define SMEXT_ENABLE_PLUGINSYS

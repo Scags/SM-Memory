@@ -13,11 +13,17 @@
 native any Calloc(int num, int size);
 native any Malloc(int size);
 native any Realloc(any p, int size);
+native any ReallocF(any p, int size);
 native void Free(any p);
+native void FreeF(any p);
 native void MemMove(any dest, any src, int size);
+native void MemMoveF(any dest, any src, int size);
 native any MemCopy(any dest, any src, int size);
+native any MemCopyF(any dest, any src, int size);
 native int MemCmp(any p1, any p2, int size);
+native int MemCmpF(any p1, any p2, int size);
 native void MemSet(any p, int val, int size);
+native void MemSetF(any p, int val, int size);
 
 /**
  *	Emit a sequence of asm.
@@ -82,37 +88,56 @@ stock any realloc(any p, int size)
 {
 	return Realloc(p, size);
 }
+stock any reallocf(any p, int size)
+{
+	return ReallocF(p, size);
+}
 stock void free(any p)
 {
 	Free(p);
+}
+stock void freef(any p)
+{
+	FreeF(p);
 }
 stock void memmove(any dest, any src, int size)
 {
 	MemMove(dest, src, size);
 }
+stock void memmovef(any dest, any src, int size)
+{
+	MemMoveF(dest, src, size);
+}
 stock any memcpy(any dest, any src, int size)
 {
 	return MemCopy(dest, src, size);
+}
+stock any memcpyf(any dest, any src, int size)
+{
+	return MemCopyF(dest, src, size);
 }
 stock int memcmp(any p1, any p2, int size)
 {
 	return MemCmp(p1, p2, size);
 }
+stock int memcmpf(any p1, any p2, int size)
+{
+	return MemCmpF(p1, p2, size);
+}
 stock void memset(any p, int val, int size)
 {
 	MemSet(p, val, size);
 }
+stock void memsetf(any p, int val, int size)
+{
+	MemSetF(p, val, size);
+}
 #endif
 
-stock any Deref(any addr, NumberType numt = NumberType_Int32)
-{
-	return LoadFromAddress(view_as< Address >(addr), numt);
-}
-
-stock void WriteVal(any addr, any val, NumberType numt = NumberType_Int32)
-{
-	StoreToAddress(view_as< Address >(addr), view_as< int >(val), numt);
-}
+#include <smmem/stocks>
+#include <smmem/vec>
+#include <smmem/handle>
+#include <smmem/dynlib>
 
 public Extension __ext_smmem =
 {
@@ -144,5 +169,20 @@ public void __ext_smmem_SetNTVOptional()
 	MarkNativeAsOptional("Emit");
 	MarkNativeAsOptional("AddressOf");
 	MarkNativeAsOptional("AddressOfString");
+	MarkNativeAsOptional("StoreToAddressFast");
+	MarkNativeAsOptional("SetMemAccess");
+
+	MarkNativeAsOptional("ReallocF");
+	MarkNativeAsOptional("FreeF");
+	MarkNativeAsOptional("MemMoveF");
+	MarkNativeAsOptional("MemCopyF");
+	MarkNativeAsOptional("MemCmpF");
+	MarkNativeAsOptional("MemSetF");
+
+	MarkNativeAsOptional("DynLib.DynLib");
+	MarkNativeAsOptional("DynLib.BaseAddr.get");
+	MarkNativeAsOptional("DynLib.GetName");
+	MarkNativeAsOptional("DynLib.FindPattern");
+	MarkNativeAsOptional("DynLib.ResolveSymbol");
 }
 #endif

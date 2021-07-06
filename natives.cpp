@@ -1,7 +1,20 @@
 #include "natives.h"
+#include "dynlib.h"
 #include <sourcehook.h>
 #include <sh_memory.h>
 #include <cstdlib>
+
+#define GET_HNDL(h, htype)                                                                     \
+	do                                                                                         \
+	{                                                                                          \
+		Handle_t hndl = (Handle_t)params[1];                                                   \
+		HandleError err;                                                                       \
+		HandleSecurity sec(pContext->GetIdentity(), myself->GetIdentity());                    \
+		if ((err = handlesys->ReadHandle(hndl, htype, &sec, (void **)&h)) != HandleError_None) \
+		{                                                                                      \
+			return pContext->ThrowNativeError("Invalid Handle %x (error %d)", hndl, err);      \
+		}                                                                                      \
+	} while (0)
 
 static cell_t Native_Calloc(IPluginContext *pContext, const cell_t *params)
 {
@@ -392,19 +405,301 @@ static cell_t Native_SetMemAccess(IPluginContext *pContext, const cell_t *params
 	return SourceHook::SetMemAccess(addr, length, flags) ? 1 : 0;
 }
 
+static cell_t Native_ReallocF(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X86
+	void *ptr = (void *)params[1];
+#else
+	void *ptr = smutils->FromPseudoAddress(params[1]);
+#endif
+	if ((uintptr_t)ptr < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", ptr);
+	}
+
+	size_t size = (size_t)params[2];
+	cell_t returnval;
+
+#ifdef PLATFORM_X86
+	returnval = (cell_t)realloc(ptr, size);
+#else
+	returnval = smutils->ToPseudoAddress(realloc(ptr, size));
+#endif
+	return returnval;
+}
+
+static cell_t Native_FreeF(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X86
+	void *ptr = (void *)params[1];
+#else
+	void *ptr = smutils->FromPseudoAddress(params[1]);
+#endif
+	if ((uintptr_t)ptr < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", ptr);
+	}
+
+	free(ptr);
+	return 0;
+}
+
+static cell_t Native_MemMoveF(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X86
+	void *dest = (void *)params[1];
+#else
+	void *dest = smutils->FromPseudoAddress(params[1]);
+#endif
+	if ((uintptr_t)dest < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x (arg 1) is pointing to reserved memory.", dest);
+	}
+
+#ifdef PLATFORM_X86
+	void *src = (void *)params[2];
+#else
+	void *src = smutils->FromPseudoAddress(params[2]);
+#endif
+	if ((uintptr_t)src < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x (arg 2) is pointing to reserved memory.", src);
+	}
+
+	size_t size = (size_t)params[3];
+
+	cell_t returnval;
+
+#ifdef PLATFORM_X86
+	returnval = (cell_t)memmove(dest, src, size);
+#else
+	returnval = smutils->ToPseudoAddress(memmove(dest, src, size));
+#endif
+	return returnval;
+}
+
+static cell_t Native_MemCopyF(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X86
+	void *dest = (void *)params[1];
+#else
+	void *dest = smutils->FromPseudoAddress(params[1]);
+#endif
+	if ((uintptr_t)dest < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x (arg 1) is pointing to reserved memory.", dest);
+	}
+
+#ifdef PLATFORM_X86
+	void *src = (void *)params[2];
+#else
+	void *src = smutils->FromPseudoAddress(params[2]);
+#endif
+	if ((uintptr_t)src < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x (arg 2) is pointing to reserved memory.", src);
+	}
+
+	size_t size = (size_t)params[3];
+
+	cell_t returnval;
+
+#ifdef PLATFORM_X86
+	returnval = (cell_t)memcpy(dest, src, size);
+#else
+	returnval = smutils->ToPseudoAddress(memcpy(dest, src, size));
+#endif
+	return returnval;
+}
+
+static cell_t Native_MemCmpF(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X86
+	void *ptr1 = (void *)params[1];
+#else
+	void *ptr1 = smutils->FromPseudoAddress(params[1]);
+#endif
+	if ((uintptr_t)ptr1 < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x (arg 1) is pointing to reserved memory.", ptr1);
+	}
+
+#ifdef PLATFORM_X86
+	void *ptr2 = (void *)params[2];
+#else
+	void *ptr2 = smutils->FromPseudoAddress(params[2]);
+#endif
+	if ((uintptr_t)ptr2 < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x (arg 2) is pointing to reserved memory.", ptr2);
+	}
+
+	size_t size = (size_t)params[3];
+
+	return (cell_t)memcmp(ptr1, ptr2, size);
+}
+
+static cell_t Native_MemSetF(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X86
+	void *ptr = (void *)params[1];
+#else
+	void *ptr = smutils->FromPseudoAddress(params[1]);
+#endif
+	if ((uintptr_t)ptr < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", ptr);
+	}
+
+	int val = (int)params[2];
+	size_t size = (size_t)params[3];
+
+	cell_t returnval;
+
+#ifdef PLATFORM_X86
+	returnval = (cell_t)memset(ptr, val, size);
+#else
+	returnval = smutils->ToPseudoAddress(memset(ptr, val, size));
+#endif
+	return returnval;
+}
+
+// Fuck...
+// https://stackoverflow.com/questions/874134/find-out-if-string-ends-with-another-string-in-c
+static bool endswith(const std::string &str, const char *suffix, unsigned suffixLen)
+{
+	return str.size() >= suffixLen && 0 == str.compare(str.size() - suffixLen, suffixLen, suffix, suffixLen);
+}
+
+static cell_t Native_DynLib(IPluginContext *pContext, const cell_t *params)
+{
+	char *name;
+	pContext->LocalToString(params[1], &name);
+
+	std::string easystring(name);
+	// The true madman in me would allow you to load up .exe's and whatnot but GetModuleHandle doesn't allow that
+#ifdef PLATFORM_WINDOWS
+	if (!endswith(easystring, ".dll", 4))
+		easystring += ".dll";
+#elif defined PLATFORM_POSIX
+	if (!endswith(easystring, ".so", 3))
+		easystring += ".so";
+#endif
+
+	DynLib *pHandle = new DynLib(name);
+	if (pHandle->m_Handle == nullptr)
+	{
+		delete pHandle;
+		return 0;
+	}
+
+	Handle_t hndl = handlesys->CreateHandle(g_DynLib, pHandle, pContext->GetIdentity(), myself->GetIdentity(), NULL);
+	if (!hndl)
+	{
+		delete pHandle;
+		return pContext->ThrowNativeError("Failed to create DynLib handle");
+	}
+
+	return hndl;
+}
+
+static cell_t Native_DynLib_BaseAddr_Get(IPluginContext *pContext, const cell_t *params)
+{
+	DynLib *handle;
+	GET_HNDL(handle, g_DynLib);
+	void *ptr = nullptr;
+#ifdef PLATFORM_WINDOWS
+	ptr = handle->m_BaseAddress;
+#elif defined PLATFORM_POSIX
+	ptr = handle->m_Info.dli_fbase;
+#endif
+
+	cell_t returnval;
+#ifdef PLATFORM_X86
+	returnval = (cell_t)ptr;
+#else
+	returnval = smutils->ToPseudoAddress(ptr);
+#endif
+	return returnval;
+}
+
+static cell_t Native_DynLib_GetName(IPluginContext *pContext, const cell_t *params)
+{
+	DynLib *handle;
+	GET_HNDL(handle, g_DynLib);
+	pContext->StringToLocal(params[2], params[3], handle->m_Name.c_str());
+	return 0;
+}
+
+static cell_t Native_DynLib_FindPattern(IPluginContext *pContext, const cell_t *params)
+{
+	DynLib *handle;
+	GET_HNDL(handle, g_DynLib);
+	char *pattern;
+	pContext->LocalToString(params[2], &pattern);
+	size_t len = (size_t)params[3];
+	void *addr = handle->FindPattern(pattern, len);
+	if (addr == nullptr)
+		return 0;
+
+	cell_t returnval;
+#ifdef PLATFORM_X86
+	returnval = (cell_t)addr;
+#else
+	returnval = smutils->ToPseudoAddress(addr);
+#endif
+	return returnval;
+}
+
+static cell_t Native_DynLib_ResolveSymbol(IPluginContext *pContext, const cell_t *params)
+{
+	DynLib *handle;
+	GET_HNDL(handle, g_DynLib);
+	char *sym;
+	pContext->LocalToString(params[2], &sym);
+	int startidx = sym[0] == '@' ? 1 : 0;
+
+	void *addr = handle->ResolveSymbol(&sym[startidx]);
+	if (addr == nullptr)
+		return 0;
+
+	cell_t returnval;
+#ifdef PLATFORM_X86
+	returnval = (cell_t)addr;
+#else
+	returnval = smutils->ToPseudoAddress(addr);
+#endif
+	return returnval;
+}
+
 sp_nativeinfo_t g_Natives[] = {
-	{"Calloc", 				Native_Calloc},
-	{"Free", 				Native_Free},
-	{"Malloc", 				Native_Malloc},
-	{"Realloc", 			Native_Realloc},
-	{"MemMove", 			Native_MemMove},
-	{"MemCopy", 			Native_MemCopy},
-	{"MemCmp", 				Native_MemCmp},
-	{"MemSet", 				Native_MemSet},
-	{"Emit", 				Native_Emit},
-	{"AddressOf", 			Native_AddressOf},
-	{"AddressOfString", 	Native_AddressOf},
-	{"StoreToAddressFast", 	Native_StoreToAddressFast},
-	{"SetMemAccess", 		Native_SetMemAccess},
+	{"Calloc", 					Native_Calloc},
+	{"Free", 					Native_Free},
+	{"Malloc", 					Native_Malloc},
+	{"Realloc", 				Native_Realloc},
+	{"MemMove", 				Native_MemMove},
+	{"MemCopy", 				Native_MemCopy},
+	{"MemCmp", 					Native_MemCmp},
+	{"MemSet", 					Native_MemSet},
+	{"Emit", 					Native_Emit},
+	{"AddressOf", 				Native_AddressOf},
+	{"AddressOfString", 		Native_AddressOf},
+	{"StoreToAddressFast", 		Native_StoreToAddressFast},
+	{"SetMemAccess", 			Native_SetMemAccess},
+
+	// Faster calls as they don't call SetMemAccess
+	{"ReallocF", 				Native_ReallocF},
+	{"FreeF", 					Native_FreeF},
+	{"MemMoveF", 				Native_MemMoveF},
+	{"MemCopyF", 				Native_MemCopyF},
+	{"MemCmpF", 				Native_MemCmpF},
+	{"MemSetF", 				Native_MemSetF},
+
+	// MemUtils
+	{"DynLib.DynLib", 			Native_DynLib},
+	{"DynLib.BaseAddr.get", 	Native_DynLib_BaseAddr_Get},
+	{"DynLib.GetName", 			Native_DynLib_GetName},
+	{"DynLib.FindPattern", 		Native_DynLib_FindPattern},
+	{"DynLib.ResolveSymbol", 	Native_DynLib_ResolveSymbol},
 	{NULL, NULL}
 };
