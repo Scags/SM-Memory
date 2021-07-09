@@ -136,7 +136,6 @@ stock void memsetf(any p, int val, int size)
 
 #include <smmem/stocks>
 #include <smmem/vec>
-#include <smmem/handle>
 #include <smmem/dynlib>
 
 public Extension __ext_smmem =
