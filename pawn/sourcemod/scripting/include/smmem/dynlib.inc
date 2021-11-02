@@ -13,6 +13,8 @@ methodmap DynLib < Handle
 	 *	@param name 			Name of the library to open.
 	 *							Exclude file extensions (.dll/.so).
 	 *							The extension adds those automatically.
+	 *							Linux must have the correct path to the 
+	 *							library file. Starts in srcds directory.
 	 *
 	 *	@return 				Handle to new DynLib object. Must be freed 
 	 *							with delete/CloseHandle
