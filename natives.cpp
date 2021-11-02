@@ -392,7 +392,7 @@ static cell_t Native_SetMemAccess(IPluginContext *pContext, const cell_t *params
 #ifdef PLATFORM_X86
 	void *addr = (void *)params[1];
 #else
-	void *addr = pseudoAddr.FromPseudoAddress(params[1]);
+	void *addr = smutils->FromPseudoAddress(params[1]);
 #endif
 
 	if ((uintptr_t)addr < VALID_MINIMUM_MEMORY_ADDRESS)
@@ -403,6 +403,34 @@ static cell_t Native_SetMemAccess(IPluginContext *pContext, const cell_t *params
 	size_t length = (size_t)params[2];
 	int flags = params[3];
 	return SourceHook::SetMemAccess(addr, length, flags) ? 1 : 0;
+}
+
+static cell_t Native_VAFormat(IPluginContext *pContext, const cell_t *params)
+{
+#ifndef PLATFORM_POSIX
+	return pContext->ThrowNativeError("This function is not available on this platform.");
+#else
+	char *buffer;
+	pContext->LocalToString(params[1], &buffer);
+
+	size_t size = (size_t)params[2];
+
+	char *format;
+	pContext->LocalToString(params[3], &format);
+
+#ifdef PLATFORM_X86
+	va_list va = (va_list)params[4];
+#else
+	va_list va = (va_list)smutils->FromPseudoAddress(params[4]);
+#endif
+
+	va_list cpy;
+	va_copy(cpy, va);
+	cell_t length = (cell_t)ke::SafeVsprintf(buffer, size, format, cpy);
+	va_end(cpy);
+
+	return length;
+#endif
 }
 
 static cell_t Native_ReallocF(IPluginContext *pContext, const cell_t *params)
@@ -586,7 +614,7 @@ static cell_t Native_DynLib(IPluginContext *pContext, const cell_t *params)
 		easystring += ".so";
 #endif
 
-	DynLib *pHandle = new DynLib(name);
+	DynLib *pHandle = new DynLib(easystring);
 	if (pHandle->m_Handle == nullptr)
 	{
 		delete pHandle;
@@ -686,6 +714,7 @@ sp_nativeinfo_t g_Natives[] = {
 	{"AddressOfString", 		Native_AddressOf},
 	{"StoreToAddressFast", 		Native_StoreToAddressFast},
 	{"SetMemAccess", 			Native_SetMemAccess},
+	{"VAFormat", 				Native_VAFormat},
 
 	// Faster calls as they don't call SetMemAccess
 	{"ReallocF", 				Native_ReallocF},

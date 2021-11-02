@@ -21,7 +21,7 @@ struct DynLib
 	Dl_info m_Info;
 #endif
 
-	DynLib(const char *name);
+	DynLib(std::string name);
 	~DynLib();
 	void *ResolveSymbol(const char *sym);
 	void *FindPattern(const char *pattern, size_t len);

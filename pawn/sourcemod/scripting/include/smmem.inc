@@ -75,6 +75,21 @@ native void StoreToAddressFast(any p, any val, NumberType numt = NumberType_Int3
 // See above defines for flags
 native bool SetMemAccess(any p, int size, int flags);
 
+/**
+ * 	Format a string with a va_list.
+ * 	For use with hooks for functions with va_list arguments.
+ * 	NOTE: LINUX ONLY. Will not work with Windows.
+ * 
+ * 	@param buffer 			Buffer to write to.
+ * 	@param size 			Size of the buffer.
+ * 	@param format 			String format.
+ * 	@param valist 			va_list ptr.
+ * 
+ * 	@error 					If calling on Windows.
+ * 	@return 				Length of buffer.
+*/
+native int VAFormat(char[] buffer, int size, char[] format, any valist);
+
 #if !defined NO_C_NAMES
 stock any calloc(int num, int size)
 {
@@ -170,6 +185,7 @@ public void __ext_smmem_SetNTVOptional()
 	MarkNativeAsOptional("AddressOfString");
 	MarkNativeAsOptional("StoreToAddressFast");
 	MarkNativeAsOptional("SetMemAccess");
+	MarkNativeAsOptional("VAFormat");
 
 	MarkNativeAsOptional("ReallocF");
 	MarkNativeAsOptional("FreeF");
