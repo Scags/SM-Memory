@@ -52,6 +52,7 @@ methodmap DynLib < Handle
 	 *	Find the address of a symbol in a library
 	 *
 	 *	@param sym 				Symbol to find, does not need to start with '@'.
+	 * 							Equivalent to GetProcAddress in Windows.
 	 *
 	 *	@return 				Address of the symbol if found, Address_Null
 	 * 							otherwise.

@@ -2,24 +2,32 @@
 #include "dynlib.h"
 
 #ifdef PLATFORM_WINDOWS
-#include <libloaderapi.h>
+#include <Windows.h>
 #endif
 
-DynLib::DynLib(std::string name)
+DynLib::DynLib(const std::string &name)
 	: m_Name(name)
 	, m_Handle(nullptr)
 {
 #ifdef PLATFORM_WINDOWS
 	m_Handle = GetModuleHandleA(name.c_str());
 	if (m_Handle == nullptr)
-		return;
+	{
+		// Doesn't exist, try and load it
+		m_Handle = LoadLibraryA(name.c_str());
+		if (m_Handle == nullptr)
+		{
+			smutils->LogError(myself, "Failed to load library %s (Error: 0x%X)", name.c_str(), GetLastError());
+			return;
+		}
+	}
 
 	m_BaseAddress = (void *)m_Handle;
 #elif defined PLATFORM_POSIX
 	m_Handle = dlopen(name.c_str(), RTLD_LAZY);
 	if (m_Handle == nullptr)
 	{
-		smutils->LogError(myself, "Failed to load library %s", dlerror());
+		smutils->LogError(myself, "Failed to load library %s (Error: %s)", name.c_str(), dlerror());
 		return;
 	}
 

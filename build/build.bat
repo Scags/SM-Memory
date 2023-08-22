@@ -1,2 +1,2 @@
-py ../configure.py --mms-path "/Users/johnm/Documents/alliedmodders/metamod-source" --sm-path "/Users/johnm/Documents/alliedmodders/sourcemod" --sdks none
+py ../configure.py --mms-path "C:/Users/johnm/Documents/GitHub/metamod-source" --sm-path "C:/Users/johnm/Documents/GitHub/sourcemod" --sdks none
 ambuild

@@ -615,7 +615,7 @@ static cell_t Native_DynLib(IPluginContext *pContext, const cell_t *params)
 #endif
 
 	DynLib *pHandle = new DynLib(easystring);
-	if (pHandle->m_Handle == nullptr)
+	if (pHandle->GetBaseAddress() == nullptr)
 	{
 		delete pHandle;
 		return 0;
@@ -637,9 +637,9 @@ static cell_t Native_DynLib_BaseAddr_Get(IPluginContext *pContext, const cell_t 
 	GET_HNDL(handle, g_DynLib);
 	void *ptr = nullptr;
 #ifdef PLATFORM_WINDOWS
-	ptr = handle->m_BaseAddress;
+	ptr = handle->GetBaseAddress();
 #elif defined PLATFORM_POSIX
-	ptr = handle->m_Info.dli_fbase;
+	ptr = handle->GetDlInfo()->dli_fbase;
 #endif
 
 	cell_t returnval;
@@ -655,7 +655,7 @@ static cell_t Native_DynLib_GetName(IPluginContext *pContext, const cell_t *para
 {
 	DynLib *handle;
 	GET_HNDL(handle, g_DynLib);
-	pContext->StringToLocal(params[2], params[3], handle->m_Name.c_str());
+	pContext->StringToLocal(params[2], params[3], handle->GetName().c_str());
 	return 0;
 }
 
@@ -685,7 +685,7 @@ static cell_t Native_DynLib_ResolveSymbol(IPluginContext *pContext, const cell_t
 	GET_HNDL(handle, g_DynLib);
 	char *sym;
 	pContext->LocalToString(params[2], &sym);
-	int startidx = sym[0] == '@' ? 1 : 0;
+	uint8_t startidx = sym[0] == '@' ? 1 : 0;
 
 	void *addr = handle->ResolveSymbol(&sym[startidx]);
 	if (addr == nullptr)
