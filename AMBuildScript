@@ -110,13 +110,14 @@ class ExtensionConfig(object):
       '-fvisibility=hidden',
     ]
     cxx.cxxflags += [
-      '-std=c++14',
+      '-std=c++20',
       '-fno-exceptions',
       '-fno-threadsafe-statics',
       '-Wno-non-virtual-dtor',
       '-Wno-overloaded-virtual',
       '-fvisibility-inlines-hidden',
       '-D_GLIBCXX_USE_CXX11_ABI=0',
+      '-fPIC'
     ]
     cxx.linkflags += ['-m32']
 

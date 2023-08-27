@@ -1,5 +1,6 @@
 #include "natives.h"
 #include "dynlib.h"
+#include "rtti.h"
 #include <sourcehook.h>
 #include <sh_memory.h>
 #include <cstdlib>
@@ -700,6 +701,114 @@ static cell_t Native_DynLib_ResolveSymbol(IPluginContext *pContext, const cell_t
 	return returnval;
 }
 
+static cell_t Native_DynamicCast(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X64
+	return pContext->ThrowNativeError("This function is not available on this platform.");
+#endif
+
+	void *ptr = (void *)params[1];
+	if ((uintptr_t)ptr < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", ptr);
+	}
+
+	char *typeName;
+	pContext->LocalToString(params[2], &typeName);
+
+	return (cell_t)__dynamic_cast(ptr, typeName);
+}
+
+static cell_t Native_DynamicCast2(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X64
+	return pContext->ThrowNativeError("This function is not available on this platform.");
+#endif
+
+	void *ptr = (void *)params[1];
+	if ((uintptr_t)ptr < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x (arg 1) is pointing to reserved memory.", ptr);
+	}
+
+	void *pType = (void *)params[2];
+	if ((uintptr_t)pType < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x (arg 2) is pointing to reserved memory.", pType);
+	}
+
+	return (cell_t)__dynamic_cast2(ptr, pType);
+}
+
+static cell_t Native_GetClassTypeInfo(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X64
+	return pContext->ThrowNativeError("This function is not available on this platform.");
+#endif
+
+	void *ptr = (void *)params[1];
+
+	if ((uintptr_t)ptr < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", ptr);
+	}
+
+	return (cell_t)GetClassTypeInfo(ptr);
+}
+
+static cell_t Native_GetClassTypeInfoByName(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X64
+	return pContext->ThrowNativeError("This function is not available on this platform.");
+#endif
+
+	void *ptr = (void *)params[1];
+	if ((uintptr_t)ptr < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", ptr);
+	}
+
+	char *name;
+	pContext->LocalToString(params[2], &name);
+
+	return (cell_t)GetClassTypeInfoByName(ptr, name);
+}
+
+static cell_t Native_GetClassTypeInfoName(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X64
+	return pContext->ThrowNativeError("This function is not available on this platform.");
+#endif
+
+	void *ptr = (void *)params[1];
+	if ((uintptr_t)ptr < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", ptr);
+	}
+
+	std::string name = GetClassTypeInfoName(ptr);
+	pContext->StringToLocal(params[2], params[3], name.c_str());
+	return 0;
+}
+
+static cell_t Native_GetTypeInfoName(IPluginContext *pContext, const cell_t *params)
+{
+#ifdef PLATFORM_X64
+	return pContext->ThrowNativeError("This function is not available on this platform.");
+#endif
+
+	void *ptr = (void *)params[1];
+	if ((uintptr_t)ptr < VALID_MINIMUM_MEMORY_ADDRESS)
+	{
+		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", ptr);
+	}
+
+	std::string name = GetTypeInfoName(ptr);
+
+	pContext->StringToLocal(params[2], params[3], name.c_str());
+	return 0;
+}
+
 sp_nativeinfo_t g_Natives[] = {
 	{"Calloc", 					Native_Calloc},
 	{"Free", 					Native_Free},
@@ -730,5 +839,13 @@ sp_nativeinfo_t g_Natives[] = {
 	{"DynLib.GetName", 			Native_DynLib_GetName},
 	{"DynLib.FindPattern", 		Native_DynLib_FindPattern},
 	{"DynLib.ResolveSymbol", 	Native_DynLib_ResolveSymbol},
+
+	// RTTI
+	{"DynamicCast", 			Native_DynamicCast},
+	{"DynamicCast2", 			Native_DynamicCast2},
+	{"GetClassTypeInfo", 		Native_GetClassTypeInfo},
+	{"GetClassTypeInfoByName", 	Native_GetClassTypeInfoByName},
+	{"GetClassTypeInfoName", 	Native_GetClassTypeInfoName},
+	{"GetTypeInfoName", 		Native_GetTypeInfoName},
 	{NULL, NULL}
 };

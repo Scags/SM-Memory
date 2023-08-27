@@ -9,7 +9,8 @@ builder.SetBuildFolder('package')
 folder_list = [
   'addons/sourcemod/extensions',
   'addons/sourcemod/scripting',
-  'addons/sourcemod/scripting/include'
+  'addons/sourcemod/scripting/include',
+  'addons/sourcemod/scripting/include/smmem',
 ]
 
 # Create the distribution folder hierarchy.
@@ -30,16 +31,22 @@ def CopyFiles(src, dest, files):
 # Include files 
 CopyFiles('pawn', 'addons/sourcemod/scripting/include',
   [ 'sourcemod/scripting/include/smmem.inc',
-  'sourcemod/scripting/include/smmem/vec.inc',
+  ]
+)
+
+CopyFiles('pawn', 'addons/sourcemod/scripting/include/smmem',
+  [ 'sourcemod/scripting/include/smmem/vec.inc',
   'sourcemod/scripting/include/smmem/stocks.inc',
   'sourcemod/scripting/include/smmem/dynlib.inc',
+  'sourcemod/scripting/include/smmem/rtti.inc',
   ]
 )
 
 CopyFiles('pawn', 'addons/sourcemod/scripting',
   [ 'sourcemod/scripting/memtest.sp',
   'sourcemod/scripting/memtest_vec.sp',
-  'sourcemod/scripting/memtest_func.sp'
+  'sourcemod/scripting/memtest_func.sp',
+  'sourcemod/scripting/memtest_rtti.sp',
   ]
 )
 
