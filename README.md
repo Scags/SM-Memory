@@ -7,6 +7,8 @@ Grab a [Release](https://github.com/Scags/SM-Memory/releases) and extract to you
 # Building
 Edit build.bat or build.sh to point to your SM and MM folders and run.
 
+Requires C++20+.
+
 # Use Cases
 
 ## Make Actual, Real Classes
