@@ -17,7 +17,7 @@ stock void WriteVal(any addr, any val, NumberType numt = NumberType_Int32)
 
 stock void WriteValF(any addr, any val, NumberType numt = NumberType_Int32)
 {
-	StoreToAddressFast(view_as< Address >(addr), view_as< int >(val), numt);
+	StoreToAddress(view_as< Address >(addr), view_as< int >(val), numt, false);
 }
 
 stock any GetEntityHandle(int ent)

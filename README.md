@@ -665,3 +665,25 @@ public void OnPluginStart()
 }
 ```
 </details>
+
+## Perform a dynamic_cast
+<details>
+<summary>Click</summary>
+
+```cpp
+#include <sdktools>
+#include <smmem>
+
+public void OnEntityCreated(int ent, const char[] classname)
+{
+	any pMeter = DynamicCast(ent, "IHasGenericMeter");
+	if (pMeter)
+	{
+		char typeName[64];
+		// Can also use GetEntityAddress(ent); either will suffice
+		GetClassTypeInfoName(pMeter, typeName, sizeof(typeName));
+		PrintToConsole("%s - %s", classname, typeName);
+	}
+}
+```
+</details>
