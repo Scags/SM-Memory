@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/usr/bin/env bash
 
 docker build -f ../Dockerfile -t sm-mem ../
 container_id=$(docker create sm-mem)
