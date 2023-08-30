@@ -5,9 +5,14 @@ Exposes more memory utility functions for SourceMod plugins.
 Grab a [Release](https://github.com/Scags/SM-Memory/releases) and extract to your server directory.
 
 # Building
-Edit build.bat or build.sh to point to your SM and MM folders and run.
 
-Requires C++20+.
+## Docker
+If using docker to build for Linux, run build_docker.sh in the build folder (git bash works for Windows).
+
+Dockerfile pulls and builds from Debian 10.
+
+## Manually
+Edit build.bat or build.sh to point to your SM and MM folders and run.
 
 # Use Cases
 
