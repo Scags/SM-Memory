@@ -1,2 +1,5 @@
 build/*
+!build/build.sh
+!build/build.bat
+!build/build_docker.sh
 .vscode*

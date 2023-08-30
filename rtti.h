@@ -53,7 +53,7 @@ std::string DemangleTypeName(const char *mangledName)
 	return "";
 }
 
-#if defined PLATFORM_WINDOWS
+#ifdef PLATFORM_WINDOWS
 struct RTTITypeDescriptor
 {
 	DWORD typeInfo;
@@ -219,30 +219,22 @@ std::string GetTypeInfoName(const void *typeInf)
 	return DemangleTypeName(srcType->name);
 }
 
-template <typename SearchType>
-concept is_searchtype = std::is_same_v<SearchType, const char *> || std::is_same_v<SearchType, const void *>;
-
 // <typeinfo, thisoffs>
 // Thisoffs is only acquired from VMI types
 template <typename SearchType>
-	requires is_searchtype<SearchType>
 std::tuple<const void *, long> ParseSI(const void *, SearchType);
 template <typename SearchType>
-	requires is_searchtype<SearchType>
 std::tuple<const void *, long> ParseVMI(const void *, SearchType);
 template <typename SearchType>
-	requires is_searchtype<SearchType>
 std::tuple<const void *, long> ParseStop(const void *, SearchType);
 
 // The concept is unnecessary but hey it's pretty cool
 template <typename SearchType>
-	requires is_searchtype<SearchType>
 using ParseFunc_t = std::tuple<const void *, long>(*)(const void *, SearchType);
 
 // Now that I've written this I've realized that I probably should have made it
 // not all in a header file
 template <typename SearchType>
-	requires is_searchtype<SearchType>
 static ParseFunc_t<SearchType> GetParseFunc(const std::string &entry)
 {
 	static std::unordered_map<std::string, ParseFunc_t<SearchType>> searchmap{
@@ -258,7 +250,6 @@ static std::unordered_map<const void *, std::string> g_SearchCache;
 
 // Capable to search via type name or by raw type info ptr
 template <typename SearchType>
-	requires is_searchtype<SearchType>
 static ParseFunc_t<SearchType> ParseFuncFromVtable(const void *type_info)
 {
 	class_type_info *base = (class_type_info *)type_info;
@@ -283,7 +274,6 @@ static ParseFunc_t<SearchType> ParseFuncFromVtable(const void *type_info)
 }
 
 template <typename SearchType>
-	requires is_searchtype<SearchType>
 std::tuple<const void *, long> ParseSI(const void *type_info, SearchType target)
 {
 	if constexpr (std::is_same_v<SearchType, const char *>)
@@ -307,7 +297,6 @@ std::tuple<const void *, long> ParseSI(const void *type_info, SearchType target)
 }
 
 template <typename SearchType>
-	requires is_searchtype<SearchType>
 std::tuple<const void *, long> ParseVMI(const void *type_info, SearchType target)
 {
 	if constexpr (std::is_same_v<SearchType, const char *>)
@@ -344,7 +333,6 @@ std::tuple<const void *, long> ParseVMI(const void *type_info, SearchType target
 }
 
 template <typename SearchType>
-	requires is_searchtype<SearchType>
 std::tuple<const void *, long> ParseStop(const void *type_info, SearchType target)
 {
 	const void *pp;
