@@ -11,15 +11,28 @@ methodmap DynLib < Handle
      *  Load a running dynamic library (.dll/.so)
      *
      *  @param name             Name of the library to open.
-     *                          Exclude file extensions (.dll/.so).
-     *                          The extension adds those automatically.
+     *                          Respective OS DLL file extensions
+     *                          (.dll/.so) will be appended automatically,
+     *                          so they are not required.
      *                          Linux must have the correct path to the 
      *                          library file. Starts in srcds directory.
+     *  @param quietFail        If this is false, an error will be
+     *                          thrown if a library is failed to be
+     *                          found/loaded.
      *
      *  @return                 Handle to new DynLib object. Must be freed 
-     *                          with delete/CloseHandle
+     *                          with delete/CloseHandle.
+     *                          Upon deletion, the OS' internal DLL
+     *                          reference counter is decremented, and if
+     *                          it is 0, then the library will be unloaded.
+     *
+     *                          If for some reason you want to free/delete 
+     *                          a DynLib Handle while keeping the library 
+     *                          loaded in memory, SDKCall LoadLibrary/dlopen
+     *                          on it for Windows and Linux respectively.
+     *                          Odds are, this isn't necessary.
     */
-    public native DynLib(const char[] name);
+    public native DynLib(const char[] name, bool quietFail=true);
 
     /**
      *  Retrieve the base address of the file in memory.
@@ -31,6 +44,8 @@ methodmap DynLib < Handle
 
     /**
      *  Get the name of the loaded library.
+     *  This will either be the name you passed in the constructor, or it
+     *  will be the name appended with the respective OS file extension.
      *
      *  @param buffer           String buffer.
      *  @param len              Buffer length.

@@ -5,9 +5,10 @@ projectName = 'sm-mem'
 
 # smsdk_ext.cpp will be automatically added later
 sourceFiles = [
-  'extension.cpp',
-  'natives.cpp',
-  'dynlib.cpp',
+  'ext/extension.cpp',
+  'ext/natives.cpp',
+  'ext/dynlib.cpp',
+  'ext/rtti.cpp'
 ]
 
 ###############

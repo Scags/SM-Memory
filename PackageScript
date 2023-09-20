@@ -39,6 +39,7 @@ CopyFiles('pawn', 'addons/sourcemod/scripting/include/smmem',
   'sourcemod/scripting/include/smmem/stocks.inc',
   'sourcemod/scripting/include/smmem/dynlib.inc',
   'sourcemod/scripting/include/smmem/rtti.inc',
+  'sourcemod/scripting/include/smmem/winnt.inc',
   ]
 )
 
@@ -67,3 +68,6 @@ CopyFiles('pawn', 'addons/sourcemod/scripting',
 # Copy binaries.
 for cxx_task in Extension.extensions:
   builder.AddCopy(cxx_task.binary, folder_map['addons/sourcemod/extensions'])
+  # Only copy PDBs in a non-prod environment
+  if builder.options.debug == '1' and builder.target_platform == 'windows':
+    builder.AddCopy(cxx_task.debug, folder_map['addons/sourcemod/extensions'])

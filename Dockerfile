@@ -11,9 +11,9 @@ RUN apt-get update && apt-get install -y \
 
 # Clone SM stuff
 WORKDIR /dependencies
-RUN git clone -b master https://github.com/alliedmodders/metamod-source.git
-RUN git clone -b master https://github.com/alliedmodders/sourcemod.git --recursive
-RUN git clone -b master https://github.com/alliedmodders/ambuild.git
+RUN git clone -b master https://github.com/alliedmodders/metamod-source.git --depth 1
+RUN git clone -b master https://github.com/alliedmodders/sourcemod.git --recursive --depth 1
+RUN git clone -b master https://github.com/alliedmodders/ambuild.git --depth 1
 
 WORKDIR /dependencies/ambuild
 RUN python3 -m pip install .
@@ -25,9 +25,13 @@ COPY . .
 
 WORKDIR /project/package
 
+ARG BUILD_MODE=optimize
+ENV PY_ARG=--enable-$BUILD_MODE
+
 # Build
 RUN python3 ../configure.py \
 	--mms-path "/dependencies/metamod-source" \
 	--sm-path "/dependencies/sourcemod" \
-	--enable-optimize
+	$PY_ARG
+
 RUN ambuild

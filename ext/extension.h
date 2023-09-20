@@ -29,8 +29,7 @@
  * Version: $Id$
  */
 
-#ifndef _INCLUDE_SOURCEMOD_EXTENSION_PROPER_H_
-#define _INCLUDE_SOURCEMOD_EXTENSION_PROPER_H_
+#pragma once
 
 #include "smsdk_ext.h"
 
@@ -106,7 +105,3 @@ public:
 	//virtual bool SDK_OnMetamodPauseChange(bool paused, char *error, size_t maxlen);
 #endif
 };
-
-extern sp_nativeinfo_t g_Natives[];
-
-#endif // _INCLUDE_SOURCEMOD_EXTENSION_PROPER_H_

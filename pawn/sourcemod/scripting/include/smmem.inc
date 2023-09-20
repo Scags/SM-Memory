@@ -7,6 +7,7 @@
   #define ptr Address
   #define cellbytes 4
   #define Address(%0) view_as< Address >(%0)
+  #define offsetof(%0,%1) ((%0)::%1 * cellbytes)
   #define memoffs(%0) ((%0) * cellbytes)
 #endif
 
@@ -155,6 +156,7 @@ stock void memsetf(any p, int val, int size)
 #include <smmem/vec>
 #include <smmem/dynlib>
 #include <smmem/rtti>
+#include <smmem/winnt>
 
 public Extension __ext_smmem =
 {

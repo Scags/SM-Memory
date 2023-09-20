@@ -593,39 +593,33 @@ static cell_t Native_MemSetF(IPluginContext *pContext, const cell_t *params)
 	return returnval;
 }
 
-// Fuck...
-// https://stackoverflow.com/questions/874134/find-out-if-string-ends-with-another-string-in-c
-static bool endswith(const std::string &str, const char *suffix, unsigned suffixLen)
-{
-	return str.size() >= suffixLen && 0 == str.compare(str.size() - suffixLen, suffixLen, suffix, suffixLen);
-}
-
 static cell_t Native_DynLib(IPluginContext *pContext, const cell_t *params)
 {
 	char *name;
 	pContext->LocalToString(params[1], &name);
 
-	std::string easystring(name);
-	// The true madman in me would allow you to load up .exe's and whatnot but GetModuleHandle doesn't allow that
-#ifdef PLATFORM_WINDOWS
-	if (!endswith(easystring, ".dll", 4))
-		easystring += ".dll";
-#elif defined PLATFORM_POSIX
-	if (!endswith(easystring, ".so", 3))
-		easystring += ".so";
-#endif
-
-	DynLib *pHandle = new DynLib(easystring);
-	if (pHandle->GetBaseAddress() == nullptr)
+	DynLib *pLib = new DynLib(name);
+	if (!pLib->IsLoaded())
 	{
-		delete pHandle;
+		delete pLib;
+		if (params[0] >= 2)
+		{
+			if (!params[2])
+				pContext->ThrowNativeError("Failed to load library %s: (Error: %s)", name, DynLib::ErrorMessage().c_str());
+		}
+		else
+		{
+			// Replicate legacy functionality if an older include/build used called this
+			smutils->LogError(myself, "Failed to load library %s: (Error: %s)", name, DynLib::ErrorMessage().c_str());
+		}
+
 		return 0;
 	}
 
-	Handle_t hndl = handlesys->CreateHandle(g_DynLib, pHandle, pContext->GetIdentity(), myself->GetIdentity(), NULL);
+	Handle_t hndl = handlesys->CreateHandle(g_DynLib, pLib, pContext->GetIdentity(), myself->GetIdentity(), NULL);
 	if (!hndl)
 	{
-		delete pHandle;
+		delete pLib;
 		return pContext->ThrowNativeError("Failed to create DynLib handle");
 	}
 
@@ -636,12 +630,7 @@ static cell_t Native_DynLib_BaseAddr_Get(IPluginContext *pContext, const cell_t 
 {
 	DynLib *handle;
 	GET_HNDL(handle, g_DynLib);
-	void *ptr = nullptr;
-#ifdef PLATFORM_WINDOWS
-	ptr = handle->GetBaseAddress();
-#elif defined PLATFORM_POSIX
-	ptr = handle->GetDlInfo()->dli_fbase;
-#endif
+	void *ptr = handle->GetBaseAddress();
 
 	cell_t returnval;
 #ifdef PLATFORM_X86
@@ -716,7 +705,7 @@ static cell_t Native_DynamicCast(IPluginContext *pContext, const cell_t *params)
 	char *typeName;
 	pContext->LocalToString(params[2], &typeName);
 
-	return (cell_t)__dynamic_cast(ptr, typeName);
+	return (cell_t)rtti::DynamicCast(ptr, typeName);
 }
 
 static cell_t Native_DynamicCast2(IPluginContext *pContext, const cell_t *params)
@@ -737,7 +726,7 @@ static cell_t Native_DynamicCast2(IPluginContext *pContext, const cell_t *params
 		return pContext->ThrowNativeError("Invalid address 0x%x (arg 2) is pointing to reserved memory.", pType);
 	}
 
-	return (cell_t)__dynamic_cast2(ptr, pType);
+	return (cell_t)rtti::DynamicCast2(ptr, pType);
 }
 
 static cell_t Native_GetClassTypeInfo(IPluginContext *pContext, const cell_t *params)
@@ -753,7 +742,7 @@ static cell_t Native_GetClassTypeInfo(IPluginContext *pContext, const cell_t *pa
 		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", ptr);
 	}
 
-	return (cell_t)GetClassTypeInfo(ptr);
+	return (cell_t)rtti::GetClassTypeInfo(ptr);
 }
 
 static cell_t Native_GetClassTypeInfoByName(IPluginContext *pContext, const cell_t *params)
@@ -771,7 +760,7 @@ static cell_t Native_GetClassTypeInfoByName(IPluginContext *pContext, const cell
 	char *name;
 	pContext->LocalToString(params[2], &name);
 
-	return (cell_t)GetClassTypeInfoByName(ptr, name);
+	return (cell_t)rtti::GetClassTypeInfoByName(ptr, name);
 }
 
 static cell_t Native_GetClassTypeInfoName(IPluginContext *pContext, const cell_t *params)
@@ -786,7 +775,7 @@ static cell_t Native_GetClassTypeInfoName(IPluginContext *pContext, const cell_t
 		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", ptr);
 	}
 
-	std::string name = GetClassTypeInfoName(ptr);
+	std::string name = rtti::GetClassTypeInfoName(ptr);
 	pContext->StringToLocal(params[2], params[3], name.c_str());
 	return 0;
 }
@@ -803,7 +792,7 @@ static cell_t Native_GetTypeInfoName(IPluginContext *pContext, const cell_t *par
 		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", ptr);
 	}
 
-	std::string name = GetTypeInfoName(ptr);
+	std::string name = rtti::GetTypeInfoName(ptr);
 
 	pContext->StringToLocal(params[2], params[3], name.c_str());
 	return 0;

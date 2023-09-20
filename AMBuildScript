@@ -120,7 +120,7 @@ class ExtensionConfig(object):
       '-fPIC',
     ]
 
-    if builder.options.opt == '1':
+    if builder.options.debug != '1':
       cxx.cxxflags += ['-g0']
 
     cxx.linkflags += ['-m32']
@@ -221,7 +221,7 @@ class ExtensionConfig(object):
 
   def ConfigureForExtension(self, context, compiler):
     compiler.cxxincludes += [
-      os.path.join(context.currentSourcePath),
+      os.path.join(context.currentSourcePath, 'ext'),
       os.path.join(self.sm_root, 'public'),
       os.path.join(self.sm_root, 'public', 'extensions'),
       os.path.join(self.sm_root, 'sourcepawn', 'include'),

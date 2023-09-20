@@ -110,3 +110,48 @@ stock void WriteStringF(any p, const char[] str, int size = -1)
 	for (int i = 0; i < size; ++i)
 		WriteValF(p + i, str[i], NumberType_Int8);
 }
+
+stock any ReadByte(any p)
+{
+	return Deref(p, NumberType_Int8);
+}
+
+stock void WriteByte(any p, any val)
+{
+	StoreToAddress(view_as< Address >(p), view_as< int >(val), NumberType_Int8);
+}
+
+stock void WriteByteF(any p, any val)
+{
+	StoreToAddress(view_as< Address >(p), view_as< int >(val), NumberType_Int8, false);
+}
+
+stock any ReadWord(any p)
+{
+	return Deref(p, NumberType_Int16);
+}
+
+stock void WriteWord(any p, any val)
+{
+	StoreToAddress(view_as< Address >(p), view_as< int >(val), NumberType_Int16);
+}
+
+stock void WriteWordF(any p, any val)
+{
+	StoreToAddress(view_as< Address >(p), view_as< int >(val), NumberType_Int16, false);
+}
+
+stock any ReadDWord(any p)
+{
+	return Deref(p, NumberType_Int32);
+}
+
+stock void WriteDWord(any p, any val)
+{
+	StoreToAddress(view_as< Address >(p), view_as< int >(val), NumberType_Int32);
+}
+
+stock void WriteDWordF(any p, any val)
+{
+	StoreToAddress(view_as< Address >(p), view_as< int >(val), NumberType_Int32, false);
+}
