@@ -26,7 +26,7 @@ DynLib::DynLib(const std::string &name)
 		{
 			m_Name += ".dll";
 			m_Handle = LoadLibraryA(m_Name.c_str());
-		}		
+		}
 	}
 
 	m_BaseAddress = (void *)m_Handle;
@@ -96,6 +96,9 @@ std::string DynLib::ErrorMessage()
 
 void *DynLib::LoadBaseAddress(const std::string &name)
 {
+#ifdef PLATFORM_WINDOWS
+	return nullptr;
+#elif defined PLATFORM_POSIX
 	std::ifstream maps("/proc/self/maps");
 	std::string line;
 	void *startAddr = nullptr;
@@ -110,4 +113,5 @@ void *DynLib::LoadBaseAddress(const std::string &name)
 		}
 	}
 	return startAddr;
+#endif
 }

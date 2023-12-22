@@ -1,4 +1,5 @@
 #include <smmem>
+#include <sourcemod>
 
 public void OnPluginStart()
 {

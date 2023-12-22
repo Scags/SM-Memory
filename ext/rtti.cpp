@@ -53,8 +53,8 @@ namespace rtti
 	{
 		if constexpr (std::is_same_v<SearchType, const char *>)
 		{
-			const char *base_name = GetTypeInfoName(type_info).c_str();
-			if (!strcmp(base_name, target))
+			std::string base_name = GetTypeInfoName(type_info);
+			if (base_name == target)
 				return std::make_tuple(type_info, 0);
 		}
 		else
@@ -76,8 +76,8 @@ namespace rtti
 	{
 		if constexpr (std::is_same_v<SearchType, const char *>)
 		{
-			const char *base_name = GetTypeInfoName(type_info).c_str();
-			if (!strcmp(base_name, target))
+			std::string base_name = GetTypeInfoName(type_info);
+			if (base_name == target)
 				return std::make_tuple(type_info, 0);
 		}
 		else
@@ -113,8 +113,8 @@ namespace rtti
 		const void *pp;
 		if constexpr (std::is_same_v<SearchType, const char *>)
 		{
-			const char *base_name = GetTypeInfoName(type_info).c_str();
-			pp = !strcmp(base_name, target) ? type_info : nullptr;
+			std::string base_name = GetTypeInfoName(type_info);
+			pp = base_name == target ? type_info : nullptr;
 		}
 		else
 		{
@@ -137,7 +137,7 @@ namespace rtti
 		for (DWORD i = 0; i < numitems; i++)
 		{
 			std::string demangled = DemangleTypeName(srcClassArray[i]->typeDescriptor->name);
-			if (!strcmp(demangled.c_str(), typeName))
+			if (demangled == typeName)
 			{
 				return (PVOID)((PBYTE)src + srcClassArray[i]->mdisp);
 			}
@@ -222,7 +222,7 @@ namespace rtti
 		{
 			RTTITypeDescriptor *baseType = srcClassArray[i]->typeDescriptor;
 			std::string demangled = DemangleTypeName(baseType->name);
-			if (!strcmp(demangled.c_str(), typeName))
+			if (demangled == typeName)
 			{
 				return (PVOID)baseType;
 			}
