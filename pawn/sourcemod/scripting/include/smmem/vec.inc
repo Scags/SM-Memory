@@ -18,8 +18,6 @@ CUtlVector<Data> {
 #endif
 
 
-enum CUtlVector{}
-
 stock CUtlVector operator+(CUtlVector oper1, int oper2)
 {
 	return oper1 + view_as< CUtlVector >(oper2);
@@ -229,13 +227,6 @@ methodmap CUtlVector
 	public bool HasElement(any val, int size = 4)
 	{
 		return this.Find(val, size) >= 0;
-	}
-
-	public void Destruct(int elem, int size = 4)
-	{
-		// Okay so freeing random shit is bad, I think we can all agree on that
-		// Destruct calls the destructor which can be literally anything so do it yourself ig
-//		WriteVal(this.m_pMemory + elem * size, 0);
 	}
 
 	public void FastRemove(int elem, int size = 4)
