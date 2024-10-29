@@ -229,6 +229,13 @@ methodmap CUtlVector
 		return this.Find(val, size) >= 0;
 	}
 
+	public void Destruct(int elem, int size = 4)
+	{
+		// Okay so freeing random shit is bad, I think we can all agree on that
+		// Destruct calls the destructor which can be literally anything so do it yourself ig
+//		WriteVal(this.m_pMemory + elem * size, 0);
+	}
+
 	public void FastRemove(int elem, int size = 4)
 	{
 		this.Destruct(elem);
