@@ -339,7 +339,11 @@ static cell_t Native_AddressOf(IPluginContext *pContext, const cell_t *params)
 	{
 		return pContext->ThrowNativeError("Variable must be declared and contained within a plugin's scope.");
 	}
+#ifdef PLATFORM_X86
 	return (cell_t)var;
+#else
+	return pseudoAddr.ToPseudoAddress(var);
+#endif
 }
 
 enum NumberType
